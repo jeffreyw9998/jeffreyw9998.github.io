@@ -57,7 +57,7 @@
         OS Threads, Scheduler, and Synchronization
       </p>
       <img
-        src="../img/MemoryAllocator.png"
+        src="../img/OSicon.png"
         alt="img of dynamic memory"
         class="intro__img"
       />
@@ -65,18 +65,103 @@
 
     <div class="portfolio-item-individual">
       <p>
-        This dynamic memory allocator is one of my class projects, but it is the
-        most memorable one to me. Dynamic allocator allocates memory spaces on
-        request and manages the heap space given by the Kernel and uses
-        different methods of free list and allocation policies.
+        <strong><u>Overview</strong></u><br>
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspThis project was one of my class project, me and my partner followed through
+        sections of this Pintos project that was meant to develop a small OS from 
+        the very core of operating systems: the Kernel. 
       </p>
-      <img src="" alt="" />
-      <p>In this project, the dynamic memory allocater adopts</p>
       <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. At cumque
-        veritatis aliquam quod fugiat, hic eveniet eius exercitationem quos
-        mollitia nulla! Assumenda nobis sed, vel explicabo illo consectetur ad
-        iste.
+        &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspIn this project, we were assigned to complete 3 sections of the Pintos project.
+        They were alarm clock, priority scheduling, and advanced scheduler.
+      </p>
+      <p>
+        <br><u><strong>Alarm clock</strong></u><br>
+        Alarm clock is relatively simple. In the original implementation that was cloned
+        from the Pintos project, and the function <strong><i>timer_sleep()</i></strong>  was 
+        using a mechanism called busy wait. A function that busy waits will take up CPU time
+        just to run through loops to check if the awaited ticks have arrived. So to avoid using
+        busy wait, we opted to put a process to sleep when they called the <strong><i>timer_sleep()</i></strong>
+        function and store its id in a list for later when we want to wake them up.
+        Then we implemented in the function <strong><i>timer_interrupt()</i></strong>, which are
+        called as an event handler whenever the hardware tick caused an interrupt, to check if there 
+        are any process that had reached the tick they're waiting for and release them back to the 
+        ready queue so the scheduler can start scheduling CPU time to them.
+      </p>
+      <p>
+        <br><u><strong>Priority Scheduling</strong></u><br>
+        Priority Scheduling is a scheduling algorithm that helps the scheduler decide which
+        process gets to run on the CPU next. In the original Pintos implementation, the scheduler
+        was using the round-robin algorithm that circulates through the processes in the ready queue
+        to run in CPU. In the new implementation, all processes will be assigned a priority value when 
+        they are created: Initialized to 32. Then the Scheduler will find the highest priority process 
+        and have them run in the CPU before the other lower priority process. In the case of equal priorities, 
+        the scheduler would choose the round-robin method among the processes with the same priority.
+      </p>
+      <p>
+        <br><u><strong>Sub section: Synchronization</strong></u>
+        Throughout the implementation of the three sections, we had to implement some objects to 
+        support synchronization throughout our code to prevent situations like the race condition. 
+        In the provided Pintos code locks, semaphores, and condition variables are given to help 
+        maintain synchronization throughout sensitive codes that could be accessed by multiple 
+        different processes at the same time. These synchronization tools are often shared among multiple 
+        processes, and we need to decide how the scheduler would react when different process with 
+        different priorities goes to sleep while waiting on one of these tools. These tools are 
+        modified so that when a process tries to take a lock(will just be using lock as an umbrella term onward), 
+        it will either get the lock or be put to sleep until the process that had the lock releases it. 
+        At the moment of releasing the lock, the process would look into who else is waiting on the lock and 
+        choose the highest priority process to place in the ready queue and ask the scheduler to check if 
+        the current running process is still highest priority.
+      </p>
+      <p><br><strong><u>Continuation of Priority Scheduler</u></strong></p>
+      <img
+        src="img/priority_inversion.JPG"
+        alt="img of dynamic memory"
+        class="prio_img"
+      />
+      <P>
+        With the tools of synchronization implemented, there is another potential issue to be addressed:
+         priority inversion. Priority inversion happends when a low priority process first came in and took
+         a lock, then was switched out of CPU by a high priority process that reached to the code where it 
+         attempted to grab the lock owned by the low priority process. The high priority process would be 
+         sent to sleep to wait for the lock. Then a process with priority in between high and low, say 
+         medium priority, came into the ready queue. This medium process will be running before the low 
+         priority process which has the lock necessary for the high priority process. So to ensure that the 
+         low priority process gets to run until it releases the lock, the high priority process should donate 
+         its priority to low priority process so it can execute before any other process whose priority is lower 
+         than the high priority process.
+      </P>
+      <p>
+        The thing I just explained above is called a priority donation. This is dealt with in the synchronization 
+        tools where we donates priority to lower priority process when grabbing locks. This "inheritance" of 
+        priority could happen in a chain where higher priority process keeps coming in and donating their priority 
+        to the lower priority process, which will propogate all the way down in the chain of donation. 
+      </p>
+
+      <p>
+        <br><u><strong>Advanced Scheduler</strong></u><br>
+        Admittedly, I personally did not put in much work into this section(unlick the other ones), most of the work
+        in this section has to be credited to my partner <a href="https://github.com/tonyliu02" target="_blank">Tony Liu</a>.
+      </p>
+      <p>
+         Our advanced scheduler operates separately to the priority scheduler that we implemented above. 
+        This advanced scheduler is called multi-layer feedback queue(MLFQs), and it basically is multiple 
+        queues that stores different processes base on their "niceness" which is how often has it occupied 
+        the CPU. The processes with high niceness will yield to other threads and have lower priority, and 
+        priocesses with low niceness will have a higher priority and therefore be less likely to yield the CPU.
+        We use variables of niceness, recent_cpu, load_avg, and priority to evaluate which process will be running
+        next and we update the priorities and niceness accordingly.<br><br>It is regrettable that I did not 
+        went into further detail with my partner at the time, I was juggling this project and 3 other upper-division
+        classes and I couldn't provide much help to my partner there. So I am unable to go into greater detail of
+        this advanced scheduler.
+      </p>
+      <p>
+        <br><u><strong>After Thought/Reflection</strong></u><br>
+        The project helped reinforced the concepts of synchronization and different kinds of process scheduler
+        for me. I personally learned how to explore the pre-existing codes to deduce what are the functionality
+        of each function and how to augment them to implement new things while passing sanity tests. Previous to This
+        project, I have always started from scratch or been provided a skeletal structure of a code. It was a challenge 
+        to have to go through all different sort of files and read through each function in great detail to be able to find
+        places that needed some more code added for our purpose.
       </p>
     </div>
     <!-- Footer-->
